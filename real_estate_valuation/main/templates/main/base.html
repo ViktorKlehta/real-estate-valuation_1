@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --hover-color: #2980b9;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            padding-top: 80px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        /* Шапка */
+        .navbar-custom {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            box-shadow: var(--box-shadow);
+            padding: 0.8rem 1rem;
+            transition: var(--transition);
+        }
+
+        .navbar-custom:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .logo-container:hover {
+            transform: translateX(5px);
+        }
+
+        .logo-icon {
+            color: white;
+            font-size: 2rem;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Кнопки */
+        .btn-custom {
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            margin-left: 10px;
+            border: none;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-outline-custom {
+            background-color: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        .btn-outline-custom:hover {
+            background-color: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Основной контент */
+        .container-main {
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .card-custom {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+        }
+
+        /* Формы */
+        .form-control-custom {
+            border-radius: var(--border-radius);
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+            transition: var(--transition);
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52,152,219,.25);
+        }
+
+        .form-label-custom {
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+
+        /* Карта */
+        .map-container {
+            border-radius: var(--border-radius);
+            border: 1px solid #ced4da;
+            transition: var(--transition);
+            height: 400px;
+            width: 100%;
+        }
+
+        .map-container:hover {
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+
+        .select-custom {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem !important;
+        }
+
+
+        .dark .select-custom {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        }
+
+
+        .price-result {
+            border-left: 5px solid #0d6efd;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .price-value {
+            font-size: 2.5rem;
+            letter-spacing: -1px;
+        }
+
+        .range-label {
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        @media (max-width: 768px) {
+            .price-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar-custom">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <a href="/" class="logo-container">
+                <i class="bi bi-house-gear-fill logo-icon"></i>
+                <span class="logo-text">Оценка недвижимости</span>
+            </a>
+
+            <nav class="d-flex align-items-center">
+                <a class="btn-custom btn-outline-custom me-2" href="{% url 'home' %}">
+                    <i class="bi bi-house-door-fill me-2"></i>Главная
+                </a>
+                <a class="btn-custom btn-primary-custom" href="{% url 'input' %}">
+                    <i class="bi bi-calculator-fill me-2"></i>Рассчитать
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container container-main py-4">
+        {% block content %}{% endblock %}
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <script>
+        // Эффект при прокрутке
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar-custom');
+            if (window.scrollY > 50) {
+                navbar.style.padding = '0.5rem 1rem';
+                navbar.style.background = 'var(--primary-color)';
+            } else {
+                navbar.style.padding = '0.8rem 1rem';
+                navbar.style.background = 'linear-gradient(135deg, var(--primary-color), #34495e)';
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

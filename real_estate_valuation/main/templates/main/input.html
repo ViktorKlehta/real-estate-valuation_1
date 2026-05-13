@@ -1,0 +1,251 @@
+{% extends 'main/base.html' %}
+{% load humanize %}
+
+{% block title %}Оценка стоимости недвижимости{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card card-custom">
+                <div class="card-header card-header-custom text-white">
+                    <h2 class="text-center mb-0"><i class="bi bi-house-heart me-2"></i>Оценка стоимости недвижимости</h2>
+                </div>
+
+                <div id="loading-spinner" class="text-center my-4" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p class="mt-2">Идёт расчёт стоимости...</p>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Левая колонка -->
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label class="form-label form-label-custom">Тип недвижимости</label>
+                                    {{ form.type }}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label form-label-custom">Количество комнат</label>
+                                    {{ form.room_count }}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label form-label-custom">Тип дома</label>
+                                    {{ form.house_type }}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label form-label-custom">Улица</label>
+                                    {{ form.street }}
+                                </div>
+                            </div>
+
+                            <!-- Правая колонка -->
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label class="form-label form-label-custom">Тип продажи</label>
+                                    {{ form.sale_type }}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label form-label-custom">Район</label>
+                                    {{ form.district }}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label form-label-custom">Общая площадь (м²)</label>
+                                    {{ form.total_area }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Полноразмерные поля -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label form-label-custom">Этаж</label>
+                                {{ form.floor }}
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label form-label-custom">Этажность дома</label>
+                                {{ form.total_floors }}
+                            </div>
+                        </div>
+
+                        <!-- Карта -->
+                        <div class="mb-4">
+                            <label class="form-label form-label-custom">Выберите местоположение на карте:</label>
+                            <div id="map" class="map-container mb-2"></div>
+                            <small class="text-muted">Кликните на карте, чтобы указать местоположение</small>
+                        </div>
+
+                        <input type="hidden" id="id_latitude" name="latitude" required>
+                        <input type="hidden" id="id_longitude" name="longitude" required>
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-custom">Расстояние до центра (км)</label>
+                            {{ form.distance_to_center }}
+                            <small class="text-muted">Рассчитывается автоматически по указанному местоположению</small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="submit" class="btn btn-primary-custom btn-custom px-4 py-2">
+                                <i class="bi bi-check-circle-fill me-2"></i>Рассчитать стоимость
+                            </button>
+                        </div>
+
+                        {% if error %}
+                            <div class="alert mt-4">{{ error }}</div>
+                        {% endif %}
+                    </form>
+
+                    {% if predicted_price %}
+                    <div class="price-result mt-4 p-4 bg-light rounded-3">
+                        <h3 class="text-center mb-3">Результаты оценки</h3>
+
+                        <div class="main-price text-center mb-2">
+                            <span class="price-value display-4 fw-bold text-primary">
+                                {{ predicted_price }} руб.
+                            </span>
+                        </div>
+
+                        <div class="price-range text-center mb-2">
+                            <span class="range-label text-muted">Диапазон оценки:</span>
+                            <span class="range-value fs-5 fw-semibold">
+                                {{ price_range }}
+                            </span>
+                        </div>
+
+                        <div class="price_kvm text-center">
+                            <span class="range-label text-muted">Цена за кв. м. :</span>
+                            <span class="range-value fs-5 fw-semibold">
+                                {{ price_kvm }} руб.
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const centerCoords = [45.045868, 38.978081];
+
+    function calculateDistance(lat, lng) {
+        const R = 6371; // Радиус Земли в км
+        const dLat = (lat - centerCoords[0]) * Math.PI / 180;
+        const dLon = (lng - centerCoords[1]) * Math.PI / 180;
+        const a =
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(centerCoords[0] * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c).toFixed(2);
+    }
+
+    const map = L.map('map').setView([45.035470, 38.975313], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    let marker;
+
+    map.on('click', function(e) {
+        if (marker) map.removeLayer(marker);
+
+        marker = L.marker(e.latlng, {
+            draggable: true,
+            icon: L.icon({
+                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map)
+
+        document.getElementById('id_latitude').value = e.latlng.lat.toFixed(6);
+        document.getElementById('id_longitude').value = e.latlng.lng.toFixed(6);
+
+        const distance = calculateDistance(e.latlng.lat, e.latlng.lng);
+        document.getElementById('id_distance_to_center').value = distance;
+
+        marker.on('dragend', function() {
+            const newLatLng = marker.getLatLng();
+            document.getElementById('id_latitude').value = newLatLng.lat.toFixed(6);
+            document.getElementById('id_longitude').value = newLatLng.lng.toFixed(6);
+
+            const newDistance = calculateDistance(newLatLng.lat, newLatLng.lng);
+            document.getElementById('id_distance_to_center').value = newDistance;
+        });
+    });
+
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
+    const distanceInput = document.getElementById('id_distance_to_center');
+
+    if (latInput.value && lngInput.value) {
+        const lat = parseFloat(latInput.value);
+        const lng = parseFloat(lngInput.value);
+
+        marker = L.marker([lat, lng], {
+            draggable: true,
+            icon: L.icon({
+                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map)
+        .bindPopup("Местоположение объекта").openPopup();
+
+        map.setView([lat, lng], 15);
+
+        if (!distanceInput.value) {
+            distanceInput.value = calculateDistance(lat, lng);
+        }
+
+        marker.on('dragend', function() {
+            const newLatLng = marker.getLatLng();
+            latInput.value = newLatLng.lat.toFixed(6);
+            lngInput.value = newLatLng.lng.toFixed(6);
+
+            distanceInput.value = calculateDistance(newLatLng.lat, newLatLng.lng);
+        });
+    }
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!latInput.value || !lngInput.value) {
+            e.preventDefault();
+            alert('Пожалуйста, укажите местоположение на карте');
+            document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+});
+
+document.querySelector('form').addEventListener('submit', function() {
+    document.getElementById('loading-spinner').style.display = 'block';
+});
+
+{% if predicted_price %}
+document.addEventListener('DOMContentLoaded', function() {
+    const priceBlock = document.querySelector('.price-result');
+    priceBlock.style.opacity = 0;
+    setTimeout(() => {
+        priceBlock.style.transition = 'opacity 0.5s ease';
+        priceBlock.style.opacity = 1;
+    }, 100);
+});
+{% endif %}
+</script>
+{% endblock %}
